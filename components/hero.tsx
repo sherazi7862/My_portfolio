@@ -6,26 +6,34 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { GithubIcon } from '@/components/icons/github-icon'
 import { Magnetic } from '@/components/magnetic'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 const HeroScene = dynamic(() => import('@/components/hero-scene'), {
   ssr: false,
 })
 
 export function Hero() {
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(true) // default true to skip initial load
+  const sceneLoaded = useRef(false)
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
+    const mq = window.matchMedia('(max-width: 1023px)')
     setIsMobile(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+
+    if (!mq.matches) {
+      sceneLoaded.current = true
+    }
+
+    const handler = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches)
+    }
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
 
   return (
     <header className="relative flex min-h-screen items-center overflow-hidden px-6 md:px-10">
-      {/* 3D scene — desktop only to avoid lag on mobile */}
+      {/* 3D scene — desktop only (≥1024px) to avoid lag on mobile */}
       {!isMobile && (
         <div className="absolute inset-0 z-0">
           <HeroScene />
@@ -35,6 +43,11 @@ export function Hero() {
       {/* soft vignette for text legibility */}
       <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-background via-background/60 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-40 bg-gradient-to-t from-background to-transparent" />
+
+      {/* subtle gradient background for mobile (no 3D scene) */}
+      {isMobile && (
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-background via-background to-primary/5" aria-hidden />
+      )}
 
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center gap-12 md:flex-row md:justify-between">
         {/* text content — left side */}
