@@ -6,18 +6,31 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { GithubIcon } from '@/components/icons/github-icon'
 import { Magnetic } from '@/components/magnetic'
+import { useEffect, useState } from 'react'
 
 const HeroScene = dynamic(() => import('@/components/hero-scene'), {
   ssr: false,
 })
 
 export function Hero() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
   return (
     <header className="relative flex min-h-screen items-center overflow-hidden px-6 md:px-10">
-      {/* 3D scene */}
-      <div className="absolute inset-0 z-0">
-        <HeroScene />
-      </div>
+      {/* 3D scene — desktop only to avoid lag on mobile */}
+      {!isMobile && (
+        <div className="absolute inset-0 z-0">
+          <HeroScene />
+        </div>
+      )}
 
       {/* soft vignette for text legibility */}
       <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-background via-background/60 to-transparent" />
